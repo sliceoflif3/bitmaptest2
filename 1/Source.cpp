@@ -5,7 +5,9 @@
 */
 #include<iostream>
 #include<Windows.h>
-#include<bits/stdc++.h>
+#include <iostream>
+#include <fstream>
+
 using namespace std;
 #pragma pack(1)
 struct BmpSignature
@@ -184,7 +186,7 @@ int main() {
     fout.write((char*)&dib.pixelSize, 2);
     dib.compressMethod = 0;
     fout.write((char*)&dib.compressMethod, 4);
-    dib.bitmapByteCount = w*h;
+    dib.bitmapByteCount = w * h;
     fout.write((char*)&dib.bitmapByteCount, 4);
     dib.horizontalResolution = 2835;
     fout.write((char*)&dib.horizontalResolution, 4);
@@ -196,20 +198,28 @@ int main() {
     fout.write((char*)&dib.importantColorCount, 4);
     PixelArray data;
     data.pixels = new Color * [dib.imageHeight];
-    for (int i = 0; i <= dib.imageHeight; i++) {
-        data.pixels[i] = new Color[dib.imageWidth];
+    int bytesPerRow = sizeof(Color) * dib.imageWidth;
+
+    while (bytesPerRow % 4 != 0)
+        bytesPerRow++;
+
+    for (int i = 0; i < dib.imageHeight; i++) {
+        data.pixels[i] = (Color*)(new char[bytesPerRow]);
     }
-   
+
     int c = w / 2;
     int r = h / 2;
- 
-    for (int i = 0; i <= dib.imageHeight; i++) {
-        for (int j = 0; j <= dib.imageWidth; j++) {
-            data.pixels[i, j]->red = 255;
-            data.pixels[i, j]->green = 0;
-            data.pixels[i, j]->blue = 0;
-            fout.write((char*)data.pixels[i, j], 3);
+
+    for (int i = 0; i < dib.imageHeight; i++) {
+        for (int j = 0; j < dib.imageWidth; j++) {
+            data.pixels[i][j].red = 255;
+            data.pixels[i][j].green = 0;
+            data.pixels[i][j].blue = 0;
         }
+        fout.write((char*)data.pixels[i], bytesPerRow);
     }
+
+    releaseBmpPixelArray(data);
+
     fout.close();
 }
